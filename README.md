@@ -9,7 +9,6 @@ dindコンテナを立てる
 cd {クローンしたフォルダ}
 docker-compose up -d
 ```
-docker container exec -it manager docker swarm init
 
 Swarmクラスタを有効化する
 ```
