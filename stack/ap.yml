@@ -1,0 +1,19 @@
+version: "3"
+services:
+  flask:
+    image: registry:5000/webapi/flask:latest
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.hostname == b9f0f7f0613e]
+    environment:
+      MYSQL_CONTAINER_NAME: db_mysql
+      MYSQL_USER_NAME: root
+      MYSQL_USER_PASSWORD: root
+      MYSQL_DB_NAME: mydb
+    networks:
+      - swarm_api_network
+  
+networks:
+  swarm_api_network:
+    external: true

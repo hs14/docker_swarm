@@ -1,0 +1,70 @@
+version: "3"
+services:
+    registry:
+        container_name: registry
+        image: registry:2.6
+        ports:
+            - 5000:5000                               # ローカルから5000ポートでアクセスできるようポートフォワード
+        volumes:
+            - "./registry-data:/var/lib/registry"     # レジストリに上げたイメージはマウントして永続化
+    
+    manager:
+        container_name: manager
+        image: docker:18.05.0-ce-dind
+        privileged: true
+        tty: true
+        ports:
+            - 8000:80                                 # Swarm外からmanager上のロードバランサにアクセスするための8000番
+            - 9000:9000                               # Swarm外からvisualizerにアクセスするための9000番
+        depends_on:
+            - registry
+        expose:
+            - 3375                                    # Swarm managerに対してdockerコマンドを実行するのに3375を使う(らしい)
+        command: "--insecure-registry registry:5000"  # registryに対してhttpでアクセスするための設定
+        volumes:
+            - "./stack:/stack"
+    
+    worker01:
+        container_name: worker_db
+        image: docker:18.05.0-ce-dind
+        privileged: true
+        tty: true
+        depends_on: 
+            - manager
+            - registry
+        expose:
+            - 7946                                    # ノード間通信に必要
+            - 7946/udp                                # ノード間通信に必要
+            - 4789/udp                                # オーバーレイネットワークに必要
+        command: "--insecure-registry registry:5000"
+        volumes:
+            - "./mysql/data:/mysql/data"              # ローカル -> dind -> mysqlコンテナ と2重でマウントする
+            - "./mysql/sqls:/mysql/sqls"
+    
+    worker02:
+        container_name: worker_ap
+        image: docker:18.05.0-ce-dind
+        privileged: true
+        tty: true
+        depends_on: 
+            - manager
+            - registry
+        expose:
+            - 7946
+            - 7946/udp
+            - 4789/udp
+        command: "--insecure-registry registry:5000"
+
+    worker03:
+        container_name: worker_web
+        image: docker:18.05.0-ce-dind
+        privileged: true
+        tty: true
+        depends_on: 
+            - manager
+            - registry
+        expose:
+            - 7946
+            - 7946/udp
+            - 4789/udp
+        command: "--insecure-registry registry:5000"

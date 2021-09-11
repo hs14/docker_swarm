@@ -1,0 +1,19 @@
+version: "3"
+services:
+  mysql:
+    image: registry:5000/webapi/mysql:latest
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.hostname == 74be99c0df9c]
+    volumes:
+      - /mysql/data:/var/lib/mysql
+      - /mysql/sqls:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    networks:
+      - swarm_api_network
+  
+networks:
+  swarm_api_network:
+    external: true

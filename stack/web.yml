@@ -1,0 +1,16 @@
+version: "3"
+services:
+  apache:
+    image: registry:5000/webapi/apache:latest
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.hostname == 2ec5b60b1f25]
+    environment:
+      SERVICE_PORTS: 80                               # HAProxyがApacheを見つけるために必要
+    networks:
+      - swarm_api_network
+  
+networks:
+  swarm_api_network:
+    external: true
